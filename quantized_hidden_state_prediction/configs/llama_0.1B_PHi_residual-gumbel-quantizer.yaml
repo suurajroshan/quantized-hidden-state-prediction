@@ -1,0 +1,165 @@
+# ----------------------------------------------------------------------------------
+# General Run and Environment Settings
+# ----------------------------------------------------------------------------------
+device: cuda
+dtype: bf16 # Use bfloat16 for training
+seed: null # Set to an integer for reproducible runs
+compile: false # Whether to compile the model with torch.compile
+
+# ----------------------------------------------------------------------------------
+# Model and Tokenizer Configuration
+# ----------------------------------------------------------------------------------
+model:
+  _component_: models.llama3_ascii_self_prediction_0_1b
+  
+  # PHi (Self-Prediction) Layer Configuration
+  # These parameters configure the PHi layer integrated into the model
+  use_self_prediction: true # Master switch to enable the PHi layer and its losses
+  self_prediction_layer: 10 # Layer index *after which* the PHi layer is inserted
+  self_prediction_information_bottleneck: residual_quantize # either `continuous` / `quantized`
+  
+  # Configuration specific to the quantized PHi layer
+  self_prediction_module:
+    codeword_dim: 768
+    codebook_dim: 1024
+    num_quantizers: 1
+    shared_encoder: false
+    shared_decoder: false
+    reconstruction_loss_factor: 0.00001
+    save_codebooks_for_qinco: false
+    save_every_n_steps: 1000
+    latent_loss_factor: 0.0
+
+
+  # Loss weights for the PHi mechanism
+  phi_loss_factor: 0.001
+  self_critic_loss_factor: 0.001
+
+  # PHi layer architecture and behavior
+  use_self_attention: true # Whether the PHi prior uses self-attention
+  detach_hidden_states: false # If true, detaches hidden states before the PHi layer
+  detach_targets: true # If true, detaches the posterior targets for the PHi loss
+  
+  # PHi layer behavior during training and inference
+  deterministic_at_inference: false # If true, use the mean of the posterior instead of sampling at inference
+  chance_to_deterministic: 0.0 # Probability of using deterministic sampling during training
+train_from_scratch: true # If true, initializes a new model instead of loading a checkpoint
+
+# Tokenizer configuration
+tokenizer:
+  _component_: models.ascii_tokenizer
+  # path: checkpoints/llama3_tokenizer.model
+  max_seq_len: 2048
+
+# ----------------------------------------------------------------------------------
+# Dataset and Dataloader
+# ----------------------------------------------------------------------------------
+dataset:
+  _component_: dataset_classes.learning_levels_pfa_dataset
+  # On-the-fly packing concatenates samples into sequences of a fixed length
+  packed_on_the_fly: true
+  packed_sequence_length: 2048
+  split_across_pack: false
+
+  num_workers: 0
+shuffle: true # Whether to shuffle the dataset
+batch_size: 16
+
+# ----------------------------------------------------------------------------------
+# Training and Optimization
+# ----------------------------------------------------------------------------------
+# Training loop settings
+epochs: 100
+max_total_steps: 30000 # Stop training after this many global steps
+max_steps_per_epoch: null # Optional: limit steps per epoch
+
+# Training mode
+train_whole_model: true # If false, freezes the base model and only trains the PHi layer
+ignore_main_training_loss: false # If true, trains only on PHi loss, ignoring next-token loss
+
+# Optimizer (AdamW)
+optimizer:
+  _component_: torch.optim.AdamW
+  fused: true
+  lr: 3.0e-4
+
+# Learning rate scheduler
+lr_scheduler:
+  _component_: modules.get_constant_schedule_with_warmup
+  num_warmup_steps: 500
+
+# # Optimizer (AdamW)
+# optimizer:
+#   _component_: torch.optim.AdamW
+#   fused: true
+#   lr: 1.0e-3
+
+# # Learning rate scheduler
+# lr_scheduler:
+#   _component_: modules.sequential_lr_scheduler
+#   num_warmup_steps: 1000
+#   num_decay_steps: 10000
+#   decay_lr_upto: 1e-4
+
+# quanztization optims
+# decaying the temperature in the case of gumbel softmax
+# ramping up the beta to avoid posterior collapse
+temperature_scheduler:
+  _component_: modules.architectures.temperature_scheduler
+  global_steps: 30_000
+  temp_start: 1
+  temp_end: 0.1
+
+
+# Main loss function for next-token prediction
+loss:
+  _component_: torchtune.modules.loss.CEWithChunkedOutputLoss
+
+# Gradient management
+gradient_accumulation_steps: 1
+clip_grad_norm: 1.0
+
+# ----------------------------------------------------------------------------------
+# Memory Management
+# ----------------------------------------------------------------------------------
+# FSDP settings
+fsdp_cpu_offload: false
+# custom_sharded_layers: ['tok_embeddings', 'output']
+
+# Activation checkpointing to save memory
+enable_activation_checkpointing: true
+
+# ----------------------------------------------------------------------------------
+# Checkpointing and Resuming
+# ----------------------------------------------------------------------------------
+checkpointer:
+  _component_: utils.checkpointer.FullModelTorchTuneCheckpointer
+  # checkpoint_dir: checkpoints/Llama-3.2-3B-Instruct
+  # checkpoint_files:
+  #   - model-00001-of-00002.safetensors
+  #   - model-00002-of-00002.safetensors
+  recipe_checkpoint: null
+  output_dir: /home/woody/iwi5/iwi5368h/models/llama_0.1B_PHi/learning_levels_sweep_$WANDB_RUN_ID/ # checkpoint directory
+  model_type: IDSIA
+
+resume_from_checkpoint: false
+checkpoint_every_n_steps: 1000
+overwrite_checkpoints: true # If true, only the latest checkpoint is kept
+save_optimizer_state: false # Whether to save optimizer state in checkpoints
+
+# ----------------------------------------------------------------------------------
+# Evaluation and Logging
+# ----------------------------------------------------------------------------------
+evaluate_every_n_steps: 1000
+
+# Logging configuration
+output_dir: /home/woody/iwi5/iwi5368h/wandb_logs # logging directory
+log_every_n_steps: 50
+log_peak_memory_stats: false
+
+metric_logger:
+  _component_: torchtune.training.metric_logging.WandBLogger
+  # _component_: torchtune.training.metric_logging.DiskLogger  # use this if wandb is not installed
+  project: self_prediction
+  log_dir: ${output_dir}
+  mode: disabled

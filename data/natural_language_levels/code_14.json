@@ -1,0 +1,5 @@
+{
+  "level": "code",
+  "user": "Generate Python code",
+  "assistant": "from unittest import TestCase\nimport pathlib\n\nfrom symbolic_music.note_event_dataset import NoteEventDataset\n\nclass TestNoteEventDataset(TestCase):\n    def test_note_event_dataset(self):\n        pass\n        file_path = pathlib.Path(r'C:\\Users\\HEV7RNG\\Documents\\data\\Yale corpus\\ElvisDownload-20190813-123713\\Casadesus-Henri')\n\n        dataset = NoteEventDataset(offset_in_second=True)\n        dataset.process_files(file_path)"
+}

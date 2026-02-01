@@ -1,0 +1,5 @@
+{
+  "level": "code",
+  "user": "Generate Python code",
+  "assistant": "import h5py\nimport pickle\nimport numpy as np\n\nf = h5py.File('/home/hev7rng/data/maestro/maestro_training.hdf5', 'w')\n\nfor i in range(10):\n    p_file = '/home/hev7rng/data/maestro/maestro_training_' + str(i) + '.p'\n    print(p_file)\n\n    with open(p_file, 'rb') as handle:\n        d = pickle.load(handle)\n        data = d['data']\n        meta_data = d['meta_data']\n\n    for key, value in data.items():\n        dset = f.create_dataset(key, data=value.astype(np.int32))\n        for k, v in meta_data.items():\n            dset.attrs[k] = v\n\npass\nf.close()"
+}
