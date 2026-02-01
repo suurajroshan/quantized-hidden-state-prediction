@@ -50,8 +50,8 @@ In addition, the performance in terms of both NLL and PHi losses.
         <td><img src="assets/pfa_levels_phi.png" alt="PFA levels PHi" /></td>
     </tr>
     <tr>
-        <td align="center">(a) pfa_levels_nll-gumbel.png</td>
-        <td align="center">(b) pfa_levels_phi.png</td>
+        <td align="center">(a)NLL loss for diferent tasks</td>
+        <td align="center">(b)PHi loss for different tasks</td>
     </tr>
 </table>
 
