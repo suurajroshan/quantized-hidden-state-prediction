@@ -33,24 +33,27 @@ The codebase is organized as follows:
 ```
 
 ## Key Results
+
 1. We find tighter information bounds when comparing raw PHi loss values.
-| Bottleneck | Mem. Seq. | Mem. Prog. | ICLL | Random |
-|---|---:|---:|---:|---:|
-| Continuous | 8.875 ± 0.4785 | 8.759 ± 0.5512 | 17.003 ± 1.1685 | 8.036 ± 2.5420 |
-| VQ (Ours) | 0.712 ± 0.0696 | 1.168 ± 0.0691 | 2.0197 ± 0.3919 | 0.231 ± 0.1372 |
-| RQ (Ours) | 0.825 ± 0.0310 | 1.965 ± 0.0386 | 3.310 ± 0.0334 | 1.250 ± 0.0867 |
+
+| Bottleneck    | Mem. Seq.         | Mem. Prog.         | ICLL               | Random            |
+|---------------|------------------:|-------------------:|-------------------:|------------------:|
+| Continuous    | 8.875 ± 0.4785    | 8.759 ± 0.5512     | 17.003 ± 1.1685    | 8.036 ± 2.5420    |
+| VQ (Ours)     | 0.712 ± 0.0696    | 1.168 ± 0.0691     | 2.0197 ± 0.3919    | 0.231 ± 0.1372    |
+| RQ (Ours)     | 0.825 ± 0.0310    | 1.965 ± 0.0386     | 3.310 ± 0.0334     | 1.250 ± 0.0867    |
 
 In addition, the performance in terms of both NLL and PHi losses.
-<div style="display:flex; gap:1rem; align-items:flex-start;">
-    <figure style="flex:1; margin:0;">
-        <img src="assets/pfa_levels_nll-gumbel.pdf" alt="PFA levels NLL (Gumbel)" style="width:100%; height:auto;" />
-        <figcaption style="text-align:center; font-size:0.9em; margin-top:0.5rem;">(a) pfa_levels_nll-gumbel.pdf</figcaption>
-    </figure>
-    <figure style="flex:1; margin:0;">
-        <img src="assets/pfa_levels_phi.pdf" alt="PFA levels PHi" style="width:100%; height:auto;" />
-        <figcaption style="text-align:center; font-size:0.9em; margin-top:0.5rem;">(b) pfa_levels_phi.pdf</figcaption>
-    </figure>
-</div>
+
+<table>
+    <tr>
+        <td><img src="assets/pfa_levels_nll-gumbel.png" alt="PFA levels NLL (Gumbel)" /></td>
+        <td><img src="assets/pfa_levels_phi.png" alt="PFA levels PHi" /></td>
+    </tr>
+    <tr>
+        <td align="center">(a) pfa_levels_nll-gumbel.png</td>
+        <td align="center">(b) pfa_levels_phi.png</td>
+    </tr>
+</table>
 
 
 ## Requirements
